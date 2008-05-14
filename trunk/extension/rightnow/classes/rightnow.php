@@ -11,7 +11,21 @@
 
 include_once('extension/rightnow/classes/rightnowrequest.php');
 
+define( "RIGHTNOW_DATATYPE_PAIR", 'pair' );
+define( "RIGHTNOW_DATATYPE_INTEGER", 'integer' );
+define( "RIGHTNOW_DATATYPE_STRING", 'string' );
+define( "RIGHTNOW_DATATYPE_ROW", 'row' );
+define( "RIGHTNOW_DATATYPE_COL", 'col' );
+define( "RIGHTNOW_DATATYPE_TIME", 'time' );
 
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU", 1 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO", 2 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER", 3 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME", 4 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD", 5 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA", 6 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE", 7 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN", 8 );
 /*
 RightNow class with static function API calls
 */
@@ -62,7 +76,62 @@ class RightNow
 	    $sql = "SELECT * FROM contacts WHERE email = '" . $db->escapeString( $contact["email"] ) . "'";
 		return RightNow::sql( $sql );
 	}	
-	
+	function addCustomField( &$stack, $id, $value , $datatype = RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER )
+	{
+	    //@TODO  ncie to have if $datatype = false we autodetermine the datatype
+		$key = 'cf_item' + ( count($stack) + 1 ) ;
+
+		switch ($datatype)
+		{
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU:
+		    {
+		        // @TODO not documented
+		        $stack[$key] = array( 'cf_id' => $id, 'datatype' => $datatype );
+		    }break;
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
+		    {
+		        $array = array();
+		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
+		        #RN8
+		        #$array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
+		        #$array[] = new RightNowParameter( 'val_int', RIGHTNOW_DATATYPE_INTEGER, $value);
+		        
+		        #RN7
+		        $array[] = new RightNowParameter( 'value', RIGHTNOW_DATATYPE_INTEGER, $value);
+		        $stack[$key] = $array;
+		    }break;
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE:
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME:
+		    {
+		        $array = array();
+		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
+		        #RN8
+		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_time', RIGHTNOW_DATATYPE_TIME, $value);
+		        $stack[$key] = $array;
+		    }break;
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA:
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD:
+		    {
+		        $array = array();
+		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
+		        #RN8
+		        #$array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
+		        #$array[] = new RightNowParameter( 'val_str', RIGHTNOW_DATATYPE_STRING, $value);
+		        
+		        #RN7
+		        $array[] = new RightNowParameter( 'value', RIGHTNOW_DATATYPE_STRING, $value);
+		        $stack[$key] = $array;
+		    }break;
+		    default:
+		    {
+		        // Do nothing for now
+		    }break;
+		}
+		
+	}
 	function storeCustomer( $contentObjectID )
 	{
 		$c_user = eZUser::fetch( $contentObjectID, true );
@@ -169,6 +238,13 @@ class RightNow
 	{
 	    $db = eZDB::instance();
 	    $sql = "SELECT c_id FROM contacts WHERE login = '" . $db->escapeString( $loginname ) . "'";
+		return RightNow::sql( $sql );
+	}
+	
+	function getCustomerByEmail( $email )
+	{
+	    $db = eZDB::instance();
+	    $sql = "SELECT c_id FROM contacts WHERE email = '" . $db->escapeString( $email ) . "'";
 		return RightNow::sql( $sql );
 	}
 

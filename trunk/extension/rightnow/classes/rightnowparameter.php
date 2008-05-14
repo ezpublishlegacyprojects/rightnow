@@ -7,11 +7,6 @@
  * @copyright Copyright (C) 2007 xrow. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
-define( "RIGHTNOW_DATATYPE_PAIR", 'pair' );
-define( "RIGHTNOW_DATATYPE_INTEGER", 'integer' );
-define( "RIGHTNOW_DATATYPE_STRING", 'string' );
-define( "RIGHTNOW_DATATYPE_ROW", 'row' );
-define( "RIGHTNOW_DATATYPE_COL", 'col' );
 
 class RightNowParameter 
 {
@@ -65,12 +60,27 @@ class RightNowParameter
 		{
 		    foreach ( $this->value as $key => $content )
 		    {
-                if ( !is_array( $content ) )
+		        if ( is_array( $content ) and count( $content ) > 0  )
+		        {
+                    $keys = array_keys( $content );
+		        }
+		        if ( is_array( $content ) and count( $content ) > 0 and is_object( $content[$keys[0]] ) )
+		        {
+		            foreach( $content as $paramkey => $rightnowparam )
+		            {
+                        $pair = $doc->createElementNode( "pair" );
+                        $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'name', $paramkey ) );
+                        $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'type', $rightnowparam->type ) );
+                        $pair->appendChild( $doc->createTextNode( $rightnowparam->value ) );
+                        $parameter->appendChild( $pair );
+                        unset( $pair );
+		            }
+		        }
+                elseif ( !is_array( $content ) )
                 {
-    		    $pair = $doc->createElementNode( "pair" );
-                $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'name', $key ) );
-                $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'type', gettype( $content ) ) );
-
+                    $pair = $doc->createElementNode( "pair" );
+                    $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'name', $key ) );
+                    $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'type', gettype( $content ) ) );
                     $pair->appendChild( $doc->createTextNode( $content ) );
                     $parameter->appendChild( $pair );
                     unset( $pair );
