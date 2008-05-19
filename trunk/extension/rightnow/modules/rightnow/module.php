@@ -16,6 +16,7 @@ $Module = array( "name" => "RightNow",
 $ViewList = array();
 $ViewList['test'] = array(
 	'script' => 'test.php',
+	'functions' => array( 'debug' ),
 	'default_navigation_part' => 'ezrightnow',
 	'single_post_actions' => array( 'Cancel' => 'Cancel' ),
 	'post_action_parameters' => array( 'Cancel' => array(  ) ),
@@ -23,5 +24,6 @@ $ViewList['test'] = array(
 	"unordered_params" => array(  ) );
 
 
+$FunctionList['debug'] = array();
 
 ?>
