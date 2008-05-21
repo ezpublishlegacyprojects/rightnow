@@ -10,10 +10,15 @@
 $Module = array( "name" => "RightNow",
                  "variable_params" => true,
                  "function" => array(
-                 "script" => "test.php",
+                 "script" => "logout.php",
                  "params" => array( ) ) );
 
 $ViewList = array();
+$ViewList['logout'] = array(
+	'script' => 'logout.php',
+	'default_navigation_part' => 'ezrightnow',
+	"params" => array( ),
+	"unordered_params" => array(  ) );
 $ViewList['test'] = array(
 	'script' => 'test.php',
 	'functions' => array( 'debug' ),
