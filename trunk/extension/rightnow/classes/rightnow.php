@@ -26,7 +26,7 @@ define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME", 4 );
 define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD", 5 );
 define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA", 6 );
 define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE", 7 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN", 8 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTION", 8 );
 /*
 RightNow class with static function API calls
 */
@@ -84,21 +84,66 @@ class RightNow
 	    $db = eZDB::instance();
 	    $sql = "SELECT * FROM contacts WHERE email = '" . $db->escapeString( $contact["email"] ) . "'";
 		return RightNow::sql( $sql );
-	}	
+	}
+	function getCustomFieldValue( $customer, $customfield_id )
+	{
+	    if ( array_key_exists( 'custom_field', $customer ) )
+	    {
+	        foreach ( $customer['custom_field'] as $field )
+	        {
+	            if ( $field['cf_id'] == $customfield_id )
+	            {
+	                
+	                switch ( (int)$field['data_type'] )
+	                {
+	                    
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU:
+	                        {
+	                            return $field['val_int'];
+	                        }break;
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTION:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
+	                        {
+	                            return $field['val_int'];
+	                        }break;
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME:
+	                        {
+	                            return $field['val_time'];
+	                        }break;
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD:
+	                        {
+
+	                            return $field['val_str'];
+	                        }break;
+	                    default:
+	                        {
+	                            // Do nothing for now
+	                        }break;
+	                }
+	            }
+	        }
+	    }
+	}
 	function addCustomField( &$stack, $id, $value , $datatype = RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER )
 	{
 	    //@TODO  ncie to have if $datatype = false we autodetermine the datatype
-		$key = 'cf_item' + ( count($stack) + 1 ) ;
+		$key = 'cf_item' . ( count($stack) + 1 ) ;
 
 		switch ($datatype)
 		{
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU:
 		    {
-		        // @TODO not documented
-		        $stack[$key] = array( 'cf_id' => $id, 'datatype' => $datatype );
+		        $array = array();
+		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
+		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_int', RIGHTNOW_DATATYPE_INTEGER, $value);
+		        $stack[$key] = $array;
 		    }break;
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTION:
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
 		    {
 		        $array = array();

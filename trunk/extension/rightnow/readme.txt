@@ -16,10 +16,10 @@
 
 ### BEGIN INIT INFO
 # Provides:     rightnow
-# Depends:	
+# Depends:	RightNow version 8 or higher
 # OS:		any
 # Version:	> eZ 3.5		
-# Developed:	Björn Dieding  ( bjoern@xrow.de )
+# Developed:	BjÃ¶rn Dieding  ( bjoern@xrow.de )
 # Short-Description: rightnow crm integration connector api
 # Description:       Integration of RightNow CRM into eZ publish
 # Resources:	 http://www.rightnow.com
