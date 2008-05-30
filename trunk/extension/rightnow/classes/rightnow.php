@@ -26,7 +26,7 @@ define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME", 4 );
 define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD", 5 );
 define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA", 6 );
 define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE", 7 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTION", 8 );
+define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN", 8 );
 /*
 RightNow class with static function API calls
 */
@@ -102,7 +102,7 @@ class RightNow
 	                            return $field['val_int'];
 	                        }break;
 	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTION:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
 	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
 	                        {
 	                            return $field['val_int'];
@@ -143,7 +143,7 @@ class RightNow
 		        $stack[$key] = $array;
 		    }break;
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTION:
+		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
 		    {
 		        $array = array();
