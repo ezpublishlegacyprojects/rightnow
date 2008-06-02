@@ -19,7 +19,7 @@ class RightNowUserType extends eZWorkflowEventType
     }
     function execute( &$process, &$event )
     {
-        if ( $GLOBALS['RIGHTNOW_NO_UPDATE'] )
+        if ( array_key_exists( 'RIGHTNOW_NO_UPDATE', $GLOBALS ) and $GLOBALS['RIGHTNOW_NO_UPDATE'] )
         {
             return EZ_WORKFLOW_TYPE_STATUS_ACCEPTED;
         }
