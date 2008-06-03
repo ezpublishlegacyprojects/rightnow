@@ -31,7 +31,7 @@
   - Creates a new user with the information found in RightNow CRM and login with that user.
 
 */
-
+include_once( "kernel/classes/ezcontentclass.php" );
 include_once( "kernel/classes/datatypes/ezuser/ezusersetting.php" );
 include_once( "kernel/classes/datatypes/ezuser/ezuser.php" );
 include_once( 'lib/ezutils/classes/ezini.php' );
@@ -318,7 +318,8 @@ class eZRightNowUser extends eZUser
 
                             eZUser::updateLastVisit( $userID );
                             eZUser::setCurrentlyLoggedInUser( $existUser, $userID );
-                            eZRightNowUser::setStaticCacheCookie( $user );
+                            
+                            eZRightNowUser::setStaticCacheCookie( $existUser );
                             return $existUser;
                         }
                     }
