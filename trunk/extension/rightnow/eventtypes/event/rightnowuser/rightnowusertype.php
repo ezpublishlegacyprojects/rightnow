@@ -8,8 +8,8 @@
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
 define( "EZ_WORKFLOW_TYPE_RIGHTNOW_USER_ID", "rightnowuser" );
-include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnow.php' );
 
+include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/login_handler/ezrightnowuser.php' );
 class RightNowUserType extends eZWorkflowEventType
 {
     function RightNowUserType()
@@ -19,13 +19,15 @@ class RightNowUserType extends eZWorkflowEventType
     }
     function execute( &$process, &$event )
     {
+        $parameters = $process->attribute( 'parameter_list' );
+        eZRightNowUser::setStaticCacheCookie( eZUser::fetch( $parameters['object_id'] ) );
         if ( array_key_exists( 'RIGHTNOW_NO_UPDATE', $GLOBALS ) and $GLOBALS['RIGHTNOW_NO_UPDATE'] )
         {
             return EZ_WORKFLOW_TYPE_STATUS_ACCEPTED;
         }
         else 
         {
-            $parameters = $process->attribute( 'parameter_list' );
+            
 
             // @TODO when right now not available use cron to deliever data.
             if ( RightNow::storeCustomer( $parameters['object_id'] ) )
