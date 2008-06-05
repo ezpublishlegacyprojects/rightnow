@@ -25,12 +25,10 @@ class RightNowUserType extends eZWorkflowEventType
         }
         else 
         {
-            // Wenn RightNow nicht verf�gbar ist per cron wiederholen.
-            // Cronjob f�r workflow pr�fen.
-            $uID=$_POST["UserID"];
-    
-    
-            if ( RightNow::storeCustomer( $uID ) )
+            $parameters = $process->attribute( 'parameter_list' );
+
+            // @TODO when right now not available use cron to deliever data.
+            if ( RightNow::storeCustomer( $parameters['object_id'] ) )
             {
                 return EZ_WORKFLOW_TYPE_STATUS_ACCEPTED;
             }
@@ -38,12 +36,8 @@ class RightNowUserType extends eZWorkflowEventType
             {
                 return EZ_WORKFLOW_TYPE_STATUS_DEFERRED_TO_CRON_REPEAT;
             }
-    
-            return EZ_WORKFLOW_TYPE_STATUS_ACCEPTED;
         }
-        
     }
-    
 }
 eZWorkflowEventType::registerType( EZ_WORKFLOW_TYPE_RIGHTNOW_USER_ID, 'rightnowusertype' );
 ?>

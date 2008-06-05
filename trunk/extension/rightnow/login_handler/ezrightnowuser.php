@@ -243,7 +243,7 @@ class eZRightNowUser extends eZUser
                             
                             $user = $this->create( $userID );
                             $user->setAttribute( 'login', $login );
-                            $user->setAttribute( 'email', $email );
+                            $user->setAttribute( 'email', $email['addr'] );
                             $user->setAttribute( 'password_hash', $userArray['password'] );
                             $user->setAttribute( 'password_hash_type', EZ_USER_PASSWORD_HASH_PLAINTEXT );
                             $user->store();
@@ -298,7 +298,7 @@ class eZRightNowUser extends eZUser
                             $contentObjectAttributes[8]->store();
                             
                             $existUser = eZUser::fetch(  $userID );
-                            $existUser->setAttribute('email', $email );
+                            $existUser->setAttribute('email', $email['addr'] );
                             $existUser->setAttribute('password_hash', $userArray['password'] );
                             $existUser->setAttribute('password_hash_type', EZ_USER_PASSWORD_HASH_PLAINTEXT );
                             $existUser->store();
