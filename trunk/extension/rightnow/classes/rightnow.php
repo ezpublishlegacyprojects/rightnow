@@ -62,6 +62,7 @@ class RightNow
 	    return $req->call();
 	}
 	
+	
 	function updateCustomer( $contact, $c_id )
 	{
 		$req = new RightNowRequest( 'contact_update' );
@@ -85,6 +86,32 @@ class RightNow
 	    $sql = "SELECT * FROM contacts WHERE email = '" . $db->escapeString( $contact["email"] ) . "'";
 		return RightNow::sql( $sql );
 	}
+	
+	function getOrganisationByCustomer( $c_id )
+	{
+	 
+	    $db = eZDB::instance();
+	    $sql = "SELECT org_id FROM contacts WHERE c_id = '" . $db->escapeString( $c_id ) . "'";
+		return RightNow::sql( $sql );
+	}
+	
+	function updateOrganisation( $organisation, $org_id )
+	{
+		$req = new RightNowRequest( 'org_update' );
+		$contact = array_merge( $organisation, array( "org_id" => (int)$org_id ) );
+		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
+		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+	    return $req->call();
+	}
+	
+	function createOrganisation( $organization )
+	{
+		$req = new RightNowRequest( 'org_create' );
+		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $organization );
+		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+	    return $req->call();
+	}
+	
 	function getCustomFieldValue( $customer, $customfield_id )
 	{
 	    if ( array_key_exists( 'custom_field', $customer ) )
@@ -196,7 +223,8 @@ class RightNow
         {
             $rightnowcust=false;
         }
-        
+        if( $rightnowcust )
+            $org_id  = RightNow::getOrganisationByCustomer( $rn_cust_ID );
         $remoteexp=explode(":", $remoteID);
         
         if ( $remoteexp[0]=="RightNow" AND $remoteexp[1]=="customers" AND $remoteexp[2]==$rn_cust_ID )
@@ -204,9 +232,18 @@ class RightNow
         else 
             $remoteidcheck=false;
         $contact = array();
+        $organisation = array();
         $custom = RightNow::getCustomization();
-        $custom->fillContact( $contact, $contentObjectID );
-
+        $custom->fillContact( $contact, $contentObjectID, $organisation );
+        if( is_numeric( $org_id ) )
+        {
+            $orga_id = $org_id;
+            RightNow::updateOrganisation( $organisation, $org_id );
+        }
+        else
+            $orga_id = RightNow::createOrganisation( $organisation );
+        $contact["org_id"] = (int)$orga_id;
+        
         if ( $remoteidcheck and $rightnowcust)
         {
             $returnvalue=RightNow::updateCustomer($contact, (int)$rn_cust_ID);
