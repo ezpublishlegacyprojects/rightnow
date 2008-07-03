@@ -8,8 +8,8 @@
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
 define( "EZ_WORKFLOW_TYPE_RIGHTNOW_USER_ID", "rightnowuser" );
-include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnow.php' );
 
+include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/login_handler/ezrightnowuser.php' );
 class RightNowUserType extends eZWorkflowEventType
 {
     function RightNowUserType()
@@ -19,18 +19,18 @@ class RightNowUserType extends eZWorkflowEventType
     }
     function execute( &$process, &$event )
     {
-        if ( $GLOBALS['RIGHTNOW_NO_UPDATE'] )
+        $parameters = $process->attribute( 'parameter_list' );
+        eZRightNowUser::setStaticCacheCookie( eZUser::fetch( $parameters['object_id'] ) );
+        if ( array_key_exists( 'RIGHTNOW_NO_UPDATE', $GLOBALS ) and $GLOBALS['RIGHTNOW_NO_UPDATE'] )
         {
             return EZ_WORKFLOW_TYPE_STATUS_ACCEPTED;
         }
         else 
         {
-            // Wenn RightNow nicht verf�gbar ist per cron wiederholen.
-            // Cronjob f�r workflow pr�fen.
-            $uID=$_POST["UserID"];
-    
-    
-            if ( RightNow::storeCustomer( $uID ) )
+            
+
+            // @TODO when right now not available use cron to deliever data.
+            if ( RightNow::storeCustomer( $parameters['object_id'] ) )
             {
                 return EZ_WORKFLOW_TYPE_STATUS_ACCEPTED;
             }
@@ -38,12 +38,8 @@ class RightNowUserType extends eZWorkflowEventType
             {
                 return EZ_WORKFLOW_TYPE_STATUS_DEFERRED_TO_CRON_REPEAT;
             }
-    
-            return EZ_WORKFLOW_TYPE_STATUS_ACCEPTED;
         }
-        
     }
-    
 }
 eZWorkflowEventType::registerType( EZ_WORKFLOW_TYPE_RIGHTNOW_USER_ID, 'rightnowusertype' );
 ?>

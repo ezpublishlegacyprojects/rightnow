@@ -27,9 +27,17 @@ class RightNowParameter
         $parameter->appendAttribute( eZDOMDocument::createAttributeNode( 'type', 'pair' ) );
 		
 		foreach ( $array as $key => $content )
-		{   
-
-           if ( !is_array( $content ) )
+		{
+		   if ( is_object( $content ) )
+		   {
+                $pair = $doc->createElementNode( "pair" );
+                $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'name', $content->name ) );
+                $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'type', $content->type ) );
+                $pair->appendChild( $doc->createTextNode( $content->value ) );
+                $parameter->appendChild( $pair );
+                unset( $pair );   
+		   }
+           elseif ( !is_array( $content ) )
            {
                 $pair = $doc->createElementNode( "pair" );
                 $pair->appendAttribute( eZDOMDocument::createAttributeNode( 'name', $key ) );
@@ -95,3 +103,4 @@ class RightNowParameter
 		return $parameter;
 	}
 }
+?>

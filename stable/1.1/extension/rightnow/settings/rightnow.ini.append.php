@@ -7,6 +7,8 @@ APIInterfaceType=http
 # Specifies the post variable from a Web page, to be compared for validation of the XML source for Web integrations. This is used to provide an interface to the RightNow XML API for third-party call management systems or other third-party systems. Default is blank.
 # Location Management & Configuration -> System Configuration -> Settings -> RNT Common
 SecretString=password
+CustomizationClassPath=extension/rightnow/classes/rightnowcustomization.php
+CustomizationClass=RightNowCustomization
 
 [FAQImportSettings]
 # folder which is use to import rightnow answers

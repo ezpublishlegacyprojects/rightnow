@@ -31,7 +31,7 @@
   - Creates a new user with the information found in RightNow CRM and login with that user.
 
 */
-
+include_once( "kernel/classes/ezcontentclass.php" );
 include_once( "kernel/classes/datatypes/ezuser/ezusersetting.php" );
 include_once( "kernel/classes/datatypes/ezuser/ezuser.php" );
 include_once( 'lib/ezutils/classes/ezini.php' );
@@ -53,9 +53,6 @@ class eZRightNowUser extends eZUser
     */
     function &loginUser( $login, $password, $authenticationMatch = false )
     {
-        
-        $http =& eZHTTPTool::instance();
-
         $db =& eZDB::instance();
 
         if ( $authenticationMatch === false )
@@ -142,7 +139,6 @@ class eZRightNowUser extends eZUser
             }
         }
         
-        
         if ( $exists and $isEnabled )
         {
             eZDebugSetting::writeDebug( 'kernel-user', $userRow, 'user row' );
@@ -152,7 +148,9 @@ class eZRightNowUser extends eZUser
 
             eZUser::updateLastVisit( $userID );
             eZUser::setCurrentlyLoggedInUser( $user, $userID );
-
+            
+            eZRightNowUser::setStaticCacheCookie( $user );
+            
             return $user;
         }
         else
@@ -245,7 +243,7 @@ class eZRightNowUser extends eZUser
                             
                             $user = $this->create( $userID );
                             $user->setAttribute( 'login', $login );
-                            $user->setAttribute( 'email', $email );
+                            $user->setAttribute( 'email', $email['addr'] );
                             $user->setAttribute( 'password_hash', $userArray['password'] );
                             $user->setAttribute( 'password_hash_type', EZ_USER_PASSWORD_HASH_PLAINTEXT );
                             $user->store();
@@ -259,6 +257,8 @@ class eZRightNowUser extends eZUser
                             $GLOBALS['RIGHTNOW_NO_UPDATE'] = false;
                             include_once("kernel/classes/ezcontentcachemanager.php");
                             eZContentCacheManager::clearContentCache($userID);
+                            eZRightNowUser::setStaticCacheCookie( $user );
+                            
                             return $user;
                         }
                         else
@@ -298,7 +298,7 @@ class eZRightNowUser extends eZUser
                             $contentObjectAttributes[8]->store();
                             
                             $existUser = eZUser::fetch(  $userID );
-                            $existUser->setAttribute('email', $email );
+                            $existUser->setAttribute('email', $email['addr'] );
                             $existUser->setAttribute('password_hash', $userArray['password'] );
                             $existUser->setAttribute('password_hash_type', EZ_USER_PASSWORD_HASH_PLAINTEXT );
                             $existUser->store();
@@ -318,7 +318,8 @@ class eZRightNowUser extends eZUser
 
                             eZUser::updateLastVisit( $userID );
                             eZUser::setCurrentlyLoggedInUser( $existUser, $userID );
-
+                            
+                            eZRightNowUser::setStaticCacheCookie( $existUser );
                             return $existUser;
                         }
                     }
@@ -332,6 +333,65 @@ class eZRightNowUser extends eZUser
         $user = false;
         return $user;
     }
+    function setStaticCacheCookie( $user )
+    {
+        $ini = eZINI::instance();
+        $cookielifetime = (int)$ini->variable('Session','SessionTimeout');
+        $object = $user->attribute( 'contentobject' );
+    	eZRightNowUser::createCookie("USER_NAME", $object->attribute( 'name' ), $cookielifetime, '/' . eZSys::wwwDir() );
+    	eZRightNowUser::createCookie("USER_ID", $user->attribute( 'contentobject_id' ), $cookielifetime, '/' . eZSys::wwwDir() );
+    	eZDebug::writeDebug($_COOKIE,'Set static cache cookie');
+    }
+    function sessionCleanup()
+    {
+    	eZRightNowUser::createCookie("USER_NAME", '', 0, '/' . eZSys::wwwDir() );
+    	eZRightNowUser::createCookie("USER_ID", '', 0, '/' . eZSys::wwwDir() );
+    }
+    
+    /**
+     * A better alternative (RFC 2109 compatible) to the php setcookie() function
+     *
+     * @param string Name of the cookie
+     * @param string Value of the cookie
+     * @param int Lifetime of the cookie
+     * @param string Path where the cookie can be used
+     * @param string Domain which can read the cookie
+     * @param bool Secure mode?
+     * @param bool Only allow HTTP usage?
+     * @return bool True or false whether the method has successfully run
+     */
+    function createCookie($name, $value='', $maxage=0, $path='', $domain='', $secure=false, $HTTPOnly=false)
+    {
+        $ob = ini_get('output_buffering');
+
+        // Abort the method if headers have already been sent, except when output buffering has been enabled
+        if ( headers_sent() && (bool) $ob === false || strtolower($ob) == 'off' )
+            return false;
+
+        if ( !empty($domain) )
+        {
+            // Fix the domain to accept domains with and without 'www.'.
+            if ( strtolower( substr($domain, 0, 4) ) == 'www.' ) $domain = substr($domain, 4);
+            // Add the dot prefix to ensure compatibility with subdomains
+            if ( substr($domain, 0, 1) != '.' ) $domain = '.'.$domain;
+
+            // Remove port information.
+            $port = strpos($domain, ':');
+
+            if ( $port !== false ) $domain = substr($domain, 0, $port);
+        }
+
+        // Prevent "headers already sent" error with utf8 support (BOM)
+        //if ( utf8_support ) header('Content-Type: text/html; charset=utf-8');
+
+        header('Set-Cookie: '.rawurlencode($name).'='.rawurlencode($value)
+                                    .(empty($domain) ? '' : '; Domain='.$domain)
+                                    .(empty($maxage) ? '' : '; Max-Age='.$maxage)
+                                    .(empty($path) ? '' : '; Path='.$path)
+                                    .(!$secure ? '' : '; Secure')
+                                    .(!$HTTPOnly ? '' : '; HttpOnly'), false);
+        return true;
+    } 
 }
 
 ?>

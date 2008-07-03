@@ -10,6 +10,7 @@
 //include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnowrequest.php' );
 
 include_once('extension/rightnow/classes/rightnowrequest.php');
+include_once('extension/rightnow/classes/rightnowcustomization.php');
 
 define( "RIGHTNOW_DATATYPE_PAIR", 'pair' );
 define( "RIGHTNOW_DATATYPE_INTEGER", 'integer' );
@@ -46,6 +47,13 @@ class RightNow
 		$contact['last_name']=(string)'Dieding';
 	
 	*/
+	function getCustomization()
+	{
+	    $ini =& eZINI::instance( 'rightnow.ini' );
+		include_once( $ini->variable( 'RightNowSettings', 'CustomizationClassPath' ) );
+		$classname = $ini->variable( 'RightNowSettings', 'CustomizationClass' );
+		return new $classname();
+	}
 	function createCustomer( $contact )
 	{
 		$req = new RightNowRequest( 'contact_create' );
@@ -54,19 +62,21 @@ class RightNow
 	    return $req->call();
 	}
 	
+	
 	function updateCustomer( $contact, $c_id )
 	{
 		$req = new RightNowRequest( 'contact_update' );
+		$contact = array_merge( $contact, array( "c_id" => (int)$c_id ) );
 		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
 		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
-		$req->addParameter( "c_id", RIGHTNOW_DATATYPE_INTEGER, $c_id );
 	    return $req->call();
 	}
 	
 	function getCustomer( $c_id )
 	{
 		$req = new RightNowRequest( 'contact_get' );
-		$req->addParameter( "c_id", RIGHTNOW_DATATYPE_INTEGER, $c_id );
+		$contact = array( "id" => (int)$c_id );
+		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
 	    return $req->call();
 	}
 	function getUniqueCustomer( $contact )
@@ -75,18 +85,89 @@ class RightNow
 	    $db = eZDB::instance();
 	    $sql = "SELECT * FROM contacts WHERE email = '" . $db->escapeString( $contact["email"] ) . "'";
 		return RightNow::sql( $sql );
-	}	
+	}
+	
+	function getOrganisationByCustomer( $c_id )
+	{
+	 
+	    $db = eZDB::instance();
+	    $sql = "SELECT org_id FROM contacts WHERE c_id = '" . $db->escapeString( $c_id ) . "'";
+		return RightNow::sql( $sql );
+	}
+	
+	function updateOrganisation( $organisation, $org_id )
+	{
+		$req = new RightNowRequest( 'org_update' );
+		$contact = array_merge( $organisation, array( "org_id" => (int)$org_id ) );
+		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
+		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+	    return $req->call();
+	}
+	
+	function createOrganisation( $organization )
+	{
+		$req = new RightNowRequest( 'org_create' );
+		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $organization );
+		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+	    return $req->call();
+	}
+	
+	function getCustomFieldValue( $customer, $customfield_id )
+	{
+	    if ( array_key_exists( 'custom_field', $customer ) )
+	    {
+	        foreach ( $customer['custom_field'] as $field )
+	        {
+	            if ( $field['cf_id'] == $customfield_id )
+	            {
+	                
+	                switch ( (int)$field['data_type'] )
+	                {
+	                    
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU:
+	                        {
+	                            return $field['val_int'];
+	                        }break;
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
+	                        {
+	                            return $field['val_int'];
+	                        }break;
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME:
+	                        {
+	                            return $field['val_time'];
+	                        }break;
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA:
+	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD:
+	                        {
+
+	                            return $field['val_str'];
+	                        }break;
+	                    default:
+	                        {
+	                            // Do nothing for now
+	                        }break;
+	                }
+	            }
+	        }
+	    }
+	}
 	function addCustomField( &$stack, $id, $value , $datatype = RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER )
 	{
 	    //@TODO  ncie to have if $datatype = false we autodetermine the datatype
-		$key = 'cf_item' + ( count($stack) + 1 ) ;
+		$key = 'cf_item' . ( count($stack) + 1 ) ;
 
 		switch ($datatype)
 		{
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU:
 		    {
-		        // @TODO not documented
-		        $stack[$key] = array( 'cf_id' => $id, 'datatype' => $datatype );
+		        $array = array();
+		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
+		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_int', RIGHTNOW_DATATYPE_INTEGER, $value);
+		        $stack[$key] = $array;
 		    }break;
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
@@ -94,12 +175,8 @@ class RightNow
 		    {
 		        $array = array();
 		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
-		        #RN8
-		        #$array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
-		        #$array[] = new RightNowParameter( 'val_int', RIGHTNOW_DATATYPE_INTEGER, $value);
-		        
-		        #RN7
-		        $array[] = new RightNowParameter( 'value', RIGHTNOW_DATATYPE_INTEGER, $value);
+		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_int', RIGHTNOW_DATATYPE_INTEGER, $value);
 		        $stack[$key] = $array;
 		    }break;
 		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE:
@@ -107,7 +184,6 @@ class RightNow
 		    {
 		        $array = array();
 		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
-		        #RN8
 		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
 		        $array[] = new RightNowParameter( 'val_time', RIGHTNOW_DATATYPE_TIME, $value);
 		        $stack[$key] = $array;
@@ -117,12 +193,8 @@ class RightNow
 		    {
 		        $array = array();
 		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
-		        #RN8
-		        #$array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
-		        #$array[] = new RightNowParameter( 'val_str', RIGHTNOW_DATATYPE_STRING, $value);
-		        
-		        #RN7
-		        $array[] = new RightNowParameter( 'value', RIGHTNOW_DATATYPE_STRING, $value);
+		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_str', RIGHTNOW_DATATYPE_STRING, $value);
 		        $stack[$key] = $array;
 		    }break;
 		    default:
@@ -141,54 +213,36 @@ class RightNow
         $c_user_dm = $co->dataMap();
         $remoteID=$co->RemoteID;
         $login=&$c_user->attribute("login");
-        $email=&$c_user->attribute("email");
-        $password=&$c_user->attribute("password_hash");
-        
-        $firstname=$c_user_dm["first_name"]->DataText;
-        $lastname=$c_user_dm["last_name"]->DataText;
-        $street=$c_user_dm["street"]->DataText;
-        $phone=$c_user_dm["phone"]->DataText;
-        $optin=$c_user_dm["optin"]->DataInt;
-        $organisation=$c_user_dm["organisation"]->DataText;
-        $title=$c_user_dm["title"]->DataText;
-        $postal_code=$c_user_dm["postal_code"]->DataText;
-        
+
         if ( $rn_cust_ID = RightNow::getCustomerByLogin($login) )
         {
             $rn_cust = RightNow::getCustomer($rn_cust_ID);
             $rightnowcust=true;
-            #var_dump($rn_cust);
-
         }
         else 
         {
             $rightnowcust=false;
         }
-        
-        
+        if( $rightnowcust )
+            $org_id  = RightNow::getOrganisationByCustomer( $rn_cust_ID );
         $remoteexp=explode(":", $remoteID);
         
         if ( $remoteexp[0]=="RightNow" AND $remoteexp[1]=="customers" AND $remoteexp[2]==$rn_cust_ID )
             $remoteidcheck=true;
         else 
             $remoteidcheck=false;
-            
-        $contact['sa_state']=(int)0;
-        $contact['ma_state']=(int)0;
-        $contact['css_state']=(int)1;
-        $contact['login']=(string)$login;
-        $contact['first_name']=(string)$firstname;
-        $contact['last_name']=(string)$lastname;
-        $contact['ma_opt_in']=(int)$optin;
-        $contact['ph_office']=(string)$phone;
-        $contact['ma_org_name']=(string)trim($organisation);
-        $contact['street']=(string)$street;
-        $contact['email']=(string)$email;
-        $contact['password']=(string)trim($password);
-        $contact['title']=(string)$title;
-        $contact['postal_code']=(string)$postal_code;
-        #var_dump($contact);
-        
+        $contact = array();
+        $organisation = array();
+        $custom = RightNow::getCustomization();
+        $custom->fillContact( $contact, $contentObjectID, $organisation );
+        if( is_numeric( $org_id ) )
+        {
+            $orga_id = $org_id;
+            RightNow::updateOrganisation( $organisation, $org_id );
+        }
+        else
+            $orga_id = RightNow::createOrganisation( $organisation );
+        $contact["org_id"] = (int)$orga_id;
         
         if ( $remoteidcheck and $rightnowcust)
         {
@@ -215,11 +269,11 @@ class RightNow
             */
             
             
-            include_once("kernel/classes/ezconobject.php");
-                            $contentObject =& eZContentObject::fetch( $contentObjectID );
-                            $remoteID = "RightNow:customers:" . $returnvalue;
-                            $contentObject->setAttribute( 'remote_id', $remoteID );
-                            $contentObject->store();
+            include_once("kernel/classes/ezcontentobject.php");
+            $contentObject =& eZContentObject::fetch( $contentObjectID );
+            $remoteID = "RightNow:customers:" . $returnvalue;
+            $contentObject->setAttribute( 'remote_id', $remoteID );
+            $contentObject->store();
         }
         else 
         {
@@ -231,7 +285,6 @@ class RightNow
             include_once("kernel/classes/ezcontentcachemanager.php");
             eZContentCacheManager::clearContentCache($contentObjectID);
         }
-        
 	}
 	
 	function getCustomerByLogin( $loginname )
