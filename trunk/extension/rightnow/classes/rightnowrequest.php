@@ -7,24 +7,20 @@
  * @copyright Copyright (C) 2007 xrow. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
-function microtime_float()
-{
-   list($usec, $sec) = explode(" ", microtime());
-   return ((float)$usec + (float)$sec);
-}
 
-include_once("extension/ezpowerlib/ezpowerlib.php");
+
 include_once("HTTP/Request.php");
 
 //include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnowparameter.php' );
-include_once('extension/rightnow/classes/rightnowparameter.php' );
+#include_once('extension/rightnow/classes/rightnowparameter.php' );
 
-include_once( 'lib/ezxml/classes/ezxml.php' );
+#include_once( 'lib/ezxml/classes/ezxml.php' );
 
 define( 'RIGHTNOW_RESPONSE_DOM_ROOT_NAME', 'connector_ret' );
 
 class RightNowRequest 
 {
+	const RESPONSE_DOM_ROOT_NAME = "connector_ret";
     var $parameters = array();
     var $function = null;
     var $id = null;
@@ -61,7 +57,7 @@ class RightNowRequest
 	    {
             $function->appendChild( $parameter->domNode() );
 	    }
-	    $req =& new HTTP_Request( $rightnowini->variable( 'RightNowSettings', 'APIInterface' ) );
+	    $req = new HTTP_Request( $rightnowini->variable( 'RightNowSettings', 'APIInterface' ) );
         $req->setMethod( HTTP_REQUEST_METHOD_POST );
         $xmlstr = $doc->toString(); 
         
@@ -106,7 +102,7 @@ class RightNowRequest
             return false;
         }
         $root =& $dom->get_root();
-        if ( $root->name() != RIGHTNOW_RESPONSE_DOM_ROOT_NAME )
+        if ( $root->name() != RightNowRequest::RESPONSE_DOM_ROOT_NAME )
         {
             eZDebug::writeError( 'Wrong doctype', 'RightNowRequest::call()' );
             return false;
@@ -124,7 +120,7 @@ class RightNowRequest
         #ret_val part
         $ret_val = $function->firstChild();
 
-        if ( $ret_val->getAttribute( "type" ) == RIGHTNOW_DATATYPE_PAIR )
+        if ( $ret_val->getAttribute( "type" ) == RightNow::DATATYPE_PAIR )
         {
             $return = $this->parsePair( $ret_val );
             eZDebug::writeDebug( $return, 'RightNow::call() - Parsed response');
@@ -142,7 +138,7 @@ class RightNowRequest
 	    $return = array();
 		foreach ( $domnode->children() as $child )
 		{
-		    if ( $child->getAttribute( "type" ) == RIGHTNOW_DATATYPE_PAIR )
+		    if ( $child->getAttribute( "type" ) == RightNow::DATATYPE_PAIR )
 		      $return[$child->getAttribute( "name" )] = RightNowRequest::parsePair( $child );
 		    else
 		    {
@@ -157,7 +153,7 @@ class RightNowRequest
 	    $return = array();
 		foreach ( $domnode->children() as $child )
 		{
-		    if ( $child->Name == RIGHTNOW_DATATYPE_ROW )
+		    if ( $child->Name == RightNow::DATATYPE_ROW )
 		      $return[$child->getAttribute( "id" )] = RightNowRequest::parseSearch( $child );
 		    else if ( $child->Name == RIGHTNOW_DATATYPE_COL )
 		    {
@@ -167,5 +163,10 @@ class RightNowRequest
 		}
 		return $return;
 	}
+}
+function microtime_float()
+{
+   list($usec, $sec) = explode(" ", microtime());
+   return ((float)$usec + (float)$sec);
 }
 ?>

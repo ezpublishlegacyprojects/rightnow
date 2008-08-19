@@ -60,7 +60,7 @@ class RightNowParameter
         $parameter->appendAttribute( eZDOMDocument::createAttributeNode( 'name', $this->name ) );
         $parameter->appendAttribute( eZDOMDocument::createAttributeNode( 'type', $this->type ) );
 		
-        if ( $this->type != RIGHTNOW_DATATYPE_PAIR )
+        if ( $this->type != RightNow::DATATYPE_PAIR )
 		{
 		    $parameter->appendChild( $doc->createTextNode( $this->value ) );
 		}

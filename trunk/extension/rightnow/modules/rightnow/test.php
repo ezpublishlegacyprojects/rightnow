@@ -8,7 +8,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
 $Module =& $Params['Module'];
-$http =& eZHTTPTool::instance();
+$http = eZHTTPTool::instance();
 
 if ( $http->hasPostVariable('Skip') )
 {
@@ -16,15 +16,14 @@ if ( $http->hasPostVariable('Skip') )
 }
 
 include_once( 'kernel/common/template.php' );
-$tpl =& templateInit();
+$tpl = templateInit();
 
-include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnow.php' );
 
 $contact['sa_state']=(int)0;
 $contact['ma_state']=(int)0;
 $contact['css_state']=(int)1;
 
-$contact['first_name']=(string)'Björn';
+$contact['first_name']=(string)'Bjoern';
 $contact['last_name']=(string)'ezright';
 $contact['login']=(string)'ezright';
 $contact['email']=(string)'bjoern@xrow.de';
@@ -39,13 +38,12 @@ $contact['css_state']=(int)1;
 */
 
 #RightNow::createCustomer( $contact );
-
-RightNow::getCustomer( RightNow::getCustomerByLogin( 'xrow' ) );
-
+$user = new RightNow();
+$id = $user->getUniqueCustomer( array("email" => "tobedeletedafterwardstestuser@example.com") );
+$value = $user->getCustomer( $id );
 $Result = array();
 $Result['left_menu'] = "design:parts/ezadmin/menu.tpl";
 $Result['content'] = $tpl->fetch( "design:rightnow/test.tpl" );
 $Result['path'] = array( array( 'url' => false,
                         'text' => 'API Test' ) );
-
 ?>

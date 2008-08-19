@@ -9,47 +9,39 @@
  */
 //include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnowrequest.php' );
 
-include_once('extension/rightnow/classes/rightnowrequest.php');
-include_once('extension/rightnow/classes/rightnowcustomization.php');
+#include_once('extension/rightnow/classes/rightnowrequest.php');
+#include_once('extension/rightnow/classes/rightnowcustomization.php');
 
-define( "RIGHTNOW_DATATYPE_PAIR", 'pair' );
-define( "RIGHTNOW_DATATYPE_INTEGER", 'integer' );
-define( "RIGHTNOW_DATATYPE_STRING", 'string' );
-define( "RIGHTNOW_DATATYPE_ROW", 'row' );
-define( "RIGHTNOW_DATATYPE_COL", 'col' );
-define( "RIGHTNOW_DATATYPE_TIME", 'time' );
 
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU", 1 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO", 2 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER", 3 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME", 4 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD", 5 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA", 6 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE", 7 );
-define( "RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN", 8 );
 /*
 RightNow class with static function API calls
 */
 class RightNow
 {
+	const DATATYPE_PAIR    = "pair";
+	const DATATYPE_INTEGER = "integer";
+	const DATATYPE_STRING  = "string";
+	const DATATYPE_ROW     = "row";
+	const DATATYPE_COL     = "col";
+	const DATATYPE_TIME    = "time";
+
+	const CUSTOMFIELD_DATATYPE_MENU      = "1";
+	const CUSTOMFIELD_DATATYPE_RADIO     = "2";
+	const CUSTOMFIELD_DATATYPE_INTEGER   = "3";
+	const CUSTOMFIELD_DATATYPE_DATETIME  = "4";
+	const CUSTOMFIELD_DATATYPE_TEXTFIELD = "5";
+	const CUSTOMFIELD_DATATYPE_TEXTAREA  = "6";
+	const CUSTOMFIELD_DATATYPE_DATE      = "7";
+	const CUSTOMFIELD_DATATYPE_OPTIN     = "8";
 
 	function RightNow()
 	{
 		
 	}
-	/*
 	
-	    $contact['sa_state']=(int)0;
-		$contact['ma_state']=(int)0;
-		$contact['css_state']=(int)1;
-		$contact['login']=(string)'xrow';
-		$contact['first_name']=(string)'Björn';
-		$contact['last_name']=(string)'Dieding';
-	
-	*/
 	function getCustomization()
 	{
-	    $ini =& eZINI::instance( 'rightnow.ini' );
+	    $ini = eZINI::instance( 'rightnow.ini' );
 		include_once( $ini->variable( 'RightNowSettings', 'CustomizationClassPath' ) );
 		$classname = $ini->variable( 'RightNowSettings', 'CustomizationClass' );
 		return new $classname();
@@ -57,8 +49,8 @@ class RightNow
 	function createCustomer( $contact )
 	{
 		$req = new RightNowRequest( 'contact_create' );
-		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
-		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+		$req->addParameter( "args", RightNow::DATATYPE_PAIR, $contact );
+		$req->addParameter( "flags", RightNow::DATATYPE_INTEGER, '0x00002' );
 	    return $req->call();
 	}
 	
@@ -67,8 +59,8 @@ class RightNow
 	{
 		$req = new RightNowRequest( 'contact_update' );
 		$contact = array_merge( $contact, array( "c_id" => (int)$c_id ) );
-		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
-		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+		$req->addParameter( "args", RightNow::DATATYPE_PAIR, $contact );
+		$req->addParameter( "flags", RightNow::DATATYPE_INTEGER, '0x00002' );
 	    return $req->call();
 	}
 	
@@ -76,7 +68,7 @@ class RightNow
 	{
 		$req = new RightNowRequest( 'contact_get' );
 		$contact = array( "id" => (int)$c_id );
-		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
+		$req->addParameter( "args", RightNow::DATATYPE_PAIR, $contact );
 	    return $req->call();
 	}
 	function getUniqueCustomer( $contact )
@@ -99,16 +91,16 @@ class RightNow
 	{
 		$req = new RightNowRequest( 'org_update' );
 		$contact = array_merge( $organisation, array( "org_id" => (int)$org_id ) );
-		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $contact );
-		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+		$req->addParameter( "args", RightNow::DATATYPE_PAIR, $contact );
+		$req->addParameter( "flags", RightNow::DATATYPE_INTEGER, '0x00002' );
 	    return $req->call();
 	}
 	
 	function createOrganisation( $organization )
 	{
 		$req = new RightNowRequest( 'org_create' );
-		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $organization );
-		$req->addParameter( "flags", RIGHTNOW_DATATYPE_INTEGER, '0x00002' );
+		$req->addParameter( "args", RightNow::DATATYPE_PAIR, $organization );
+		$req->addParameter( "flags", RightNow::DATATYPE_INTEGER, '0x00002' );
 	    return $req->call();
 	}
 	
@@ -124,23 +116,23 @@ class RightNow
 	                switch ( (int)$field['data_type'] )
 	                {
 	                    
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_MENU:
 	                        {
 	                            return $field['val_int'];
 	                        }break;
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_RADIO:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_OPTIN:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_INTEGER:
 	                        {
 	                            return $field['val_int'];
 	                        }break;
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE:
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_DATE:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_DATETIME:
 	                        {
 	                            return $field['val_time'];
 	                        }break;
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA:
-	                    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_TEXTAREA:
+	                    case RightNow::CUSTOMFIELD_DATATYPE_TEXTFIELD:
 	                        {
 
 	                            return $field['val_str'];
@@ -154,47 +146,47 @@ class RightNow
 	        }
 	    }
 	}
-	function addCustomField( &$stack, $id, $value , $datatype = RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER )
+	function addCustomField( &$stack, $id, $value , $datatype = RightNow::CUSTOMFIELD_DATATYPE_INTEGER )
 	{
 	    //@TODO  ncie to have if $datatype = false we autodetermine the datatype
 		$key = 'cf_item' . ( count($stack) + 1 ) ;
 
 		switch ($datatype)
 		{
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_MENU:
+		    case RightNow::CUSTOMFIELD_DATATYPE_MENU:
 		    {
 		        $array = array();
-		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
-		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
-		        $array[] = new RightNowParameter( 'val_int', RIGHTNOW_DATATYPE_INTEGER, $value);
+		        $array[] = new RightNowParameter( 'cf_id', RightNow::DATATYPE_INTEGER, $id );
+		        $array[] = new RightNowParameter( 'data_type', RightNow::DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_int', RightNow::DATATYPE_INTEGER, $value);
 		        $stack[$key] = $array;
 		    }break;
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_RADIO:
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_OPTIN:
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_INTEGER:
+		    case RightNow::CUSTOMFIELD_DATATYPE_RADIO:
+		    case RightNow::CUSTOMFIELD_DATATYPE_OPTIN:
+		    case RightNow::CUSTOMFIELD_DATATYPE_INTEGER:
 		    {
 		        $array = array();
-		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
-		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
-		        $array[] = new RightNowParameter( 'val_int', RIGHTNOW_DATATYPE_INTEGER, $value);
+		        $array[] = new RightNowParameter( 'cf_id', RightNow::DATATYPE_INTEGER, $id );
+		        $array[] = new RightNowParameter( 'data_type', RightNow::DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_int', RightNow::DATATYPE_INTEGER, $value);
 		        $stack[$key] = $array;
 		    }break;
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATE:
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_DATETIME:
+		    case RightNow::CUSTOMFIELD_DATATYPE_DATE:
+		    case RightNow::CUSTOMFIELD_DATATYPE_DATETIME:
 		    {
 		        $array = array();
-		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
-		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
-		        $array[] = new RightNowParameter( 'val_time', RIGHTNOW_DATATYPE_TIME, $value);
+		        $array[] = new RightNowParameter( 'cf_id', RightNow::DATATYPE_INTEGER, $id );
+		        $array[] = new RightNowParameter( 'data_type', RightNow::DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_time', RightNow::DATATYPE_TIME, $value);
 		        $stack[$key] = $array;
 		    }break;
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTAREA:
-		    case RIGHTNOW_CUSTOMFIELD_DATATYPE_TEXTFIELD:
+		    case RightNow::CUSTOMFIELD_DATATYPE_TEXTAREA:
+		    case RightNow::CUSTOMFIELD_DATATYPE_TEXTFIELD:
 		    {
 		        $array = array();
-		        $array[] = new RightNowParameter( 'cf_id', RIGHTNOW_DATATYPE_INTEGER, $id );
-		        $array[] = new RightNowParameter( 'data_type', RIGHTNOW_DATATYPE_INTEGER, $datatype );
-		        $array[] = new RightNowParameter( 'val_str', RIGHTNOW_DATATYPE_STRING, $value);
+		        $array[] = new RightNowParameter( 'cf_id', RightNow::DATATYPE_INTEGER, $id );
+		        $array[] = new RightNowParameter( 'data_type', RightNow::DATATYPE_INTEGER, $datatype );
+		        $array[] = new RightNowParameter( 'val_str', RightNow::DATATYPE_STRING, $value);
 		        $stack[$key] = $array;
 		    }break;
 		    default:
@@ -269,8 +261,8 @@ class RightNow
             */
             
             
-            include_once("kernel/classes/ezcontentobject.php");
-            $contentObject =& eZContentObject::fetch( $contentObjectID );
+            #include_once("kernel/classes/ezcontentobject.php");
+            $contentObject = eZContentObject::fetch( $contentObjectID );
             $remoteID = "RightNow:customers:" . $returnvalue;
             $contentObject->setAttribute( 'remote_id', $remoteID );
             $contentObject->store();
@@ -282,7 +274,7 @@ class RightNow
         
         if ( $contentObjectID >= 2 )
         {
-            include_once("kernel/classes/ezcontentcachemanager.php");
+            #include_once("kernel/classes/ezcontentcachemanager.php");
             eZContentCacheManager::clearContentCache($contentObjectID);
         }
 	}
@@ -301,13 +293,13 @@ class RightNow
 		return RightNow::sql( $sql );
 	}
 
-	function sql( $sql, $returntype = RIGHTNOW_DATATYPE_INTEGER )
+	function sql( $sql, $returntype = RightNow::DATATYPE_INTEGER )
 	{
-	    if ( $returntype = RIGHTNOW_DATATYPE_INTEGER )
+	    if ( $returntype = RightNow::DATATYPE_INTEGER )
 		  $req = new RightNowRequest( 'sql_get_int', 'sql_str' );
 		else
 		  $req = new RightNowRequest( 'sql_get_str', 'sql_str' );
-		$req->addParameter( "sql", RIGHTNOW_DATATYPE_STRING, $sql );
+		$req->addParameter( "sql", RightNow::DATATYPE_STRING, $sql );
 	    return $req->call();
 	}
 	
@@ -321,9 +313,9 @@ class RightNow
 	*/
 	function getAllMaxIdFAQ()
 	{
-		$db = eZDB::instance();
+		#$db = eZDB::instance();
 	    $sql = "SELECT max( a_id ) FROM answers";
-		return RightNow::sql( $sql, RIGHTNOW_DATATYPE_INTEGER );		
+		return RightNow::sql( $sql, RightNow::DATATYPE_INTEGER );		
 	}
 	
 	
@@ -331,7 +323,7 @@ class RightNow
 	function getFAQById( $a_id )
 	{
 	    $req = new RightNowRequest( 'ans_get' );
-		$req->addParameter( "a_id", RIGHTNOW_DATATYPE_INTEGER, $a_id );
+		$req->addParameter( "a_id", RightNow::DATATYPE_INTEGER, $a_id );
 	    return $req->call();
 	}
 	
@@ -343,9 +335,9 @@ class RightNow
 			$max_rows =1000;
 		
 		$req = new RightNowRequest( 'search' );
-		$req->addParameter( "view_id", RIGHTNOW_DATATYPE_INTEGER, $view_id );
+		$req->addParameter( "view_id", RightNow::DATATYPE_INTEGER, $view_id );
 		
-		$req->addParameter( "max_rows", RIGHTNOW_DATATYPE_INTEGER, $max_rows );		
+		$req->addParameter( "max_rows", RightNow::DATATYPE_INTEGER, $max_rows );		
 		
 		
 	    return $req->call();
@@ -357,8 +349,8 @@ class RightNow
 	function getMenuItemById( $hier_menu_id )
 	{
 		$req = new RightNowRequest( 'hiermenu_get' );
-		$req->addParameter( "id", RIGHTNOW_DATATYPE_INTEGER, $hier_menu_id );
-		$req->addParameter( "tpl", RIGHTNOW_DATATYPE_INTEGER, 14 );
+		$req->addParameter( "id", RightNow::DATATYPE_INTEGER, $hier_menu_id );
+		$req->addParameter( "tpl", RightNow::DATATYPE_INTEGER, 14 );
 	    return $req->call();
 	}
 	
@@ -392,7 +384,7 @@ class RightNow
 		}
 		
 		$req = new RightNowRequest( 'ans_create' );
-		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $answerArr );
+		$req->addParameter( "args", RightNow::DATATYPE_PAIR, $answerArr );
 	
 	    return $req->call();
 	}
@@ -408,7 +400,7 @@ class RightNow
 	function createMetaAnswer( $metaAnswerArr )
 	{
 		$req = new RightNowRequest( 'meta_ans_create' );
-		$req->addParameter( "args", RIGHTNOW_DATATYPE_PAIR, $metaAnswerArr );
+		$req->addParameter( "args", RightNow::DATATYPE_PAIR, $metaAnswerArr );
 	
 	    return $req->call();
 	}

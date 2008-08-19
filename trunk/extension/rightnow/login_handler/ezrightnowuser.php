@@ -31,11 +31,11 @@
   - Creates a new user with the information found in RightNow CRM and login with that user.
 
 */
-include_once( "kernel/classes/ezcontentclass.php" );
-include_once( "kernel/classes/datatypes/ezuser/ezusersetting.php" );
-include_once( "kernel/classes/datatypes/ezuser/ezuser.php" );
-include_once( 'lib/ezutils/classes/ezini.php' );
-include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnow.php' );
+#include_once( "kernel/classes/ezcontentclass.php" );
+#include_once( "kernel/classes/datatypes/ezuser/ezusersetting.php" );
+#include_once( "kernel/classes/datatypes/ezuser/ezuser.php" );
+#include_once( 'lib/ezutils/classes/ezini.php' );
+#include_once( eZExtension::baseDirectory() . '/' . nameFromPath(__FILE__) . '/classes/rightnow.php' );
 
 class eZRightNowUser extends eZUser
 {
@@ -51,9 +51,9 @@ class eZRightNowUser extends eZUser
      Logs in the user if applied username and password is
      valid. The userID is returned if succesful, false if not.
     */
-    function &loginUser( $login, $password, $authenticationMatch = false )
+    static function loginUser( $login, $password, $authenticationMatch = false )
     {
-        $db =& eZDB::instance();
+        $db = eZDB::instance();
 
         if ( $authenticationMatch === false )
             $authenticationMatch = eZUser::authenticationMatch();
@@ -62,18 +62,18 @@ class eZRightNowUser extends eZUser
         $passwordEscaped = $db->escapeString( $password );
 
         $loginArray = array();
-        if ( $authenticationMatch & EZ_USER_AUTHENTICATE_LOGIN )
+        if ( $authenticationMatch & eZUser::AUTHENTICATE_LOGIN )
             $loginArray[] = "login='$loginEscaped'";
-        if ( $authenticationMatch & EZ_USER_AUTHENTICATE_EMAIL )
+        if ( $authenticationMatch & eZUser::AUTHENTICATE_EMAIL )
             $loginArray[] = "email='$loginEscaped'";
         if ( count( $loginArray ) == 0 )
             $loginArray[] = "login='$loginEscaped'";
         $loginText = implode( ' OR ', $loginArray );
 
-        $contentObjectStatus = EZ_CONTENT_OBJECT_STATUS_PUBLISHED;
+        $contentObjectStatus = eZContentObject::STATUS_PUBLISHED;
 
-        $ini =& eZINI::instance();
-        $textFileIni =& eZINI::instance( 'textfile.ini' );
+        $ini = eZINI::instance();
+        $textFileIni = eZINI::instance( 'textfile.ini' );
         $databaseImplementation = $ini->variable( 'DatabaseSettings', 'DatabaseImplementation' );
         // if mysql
         if ( $databaseImplementation == "ezmysql" )
@@ -108,7 +108,7 @@ class eZRightNowUser extends eZUser
                                                     $hash );
 
                 // If hash type is MySql
-                if ( $hashType == EZ_USER_PASSWORD_HASH_MYSQL and $databaseImplementation == "ezmysql" )
+                if ( $hashType == eZUser::PASSWORD_HASH_MYSQL and $databaseImplementation == "ezmysql" )
                 {
                     $queryMysqlUser = "SELECT contentobject_id, password_hash, password_hash_type, email, login
                                        FROM ezuser, ezcontentobject
@@ -209,13 +209,13 @@ class eZRightNowUser extends eZUser
                                                                                'parent_node' => $defaultUserPlacement,
                                                                                'is_main' => 1 ) );
                             $nodeAssignment->store();
-                            $version =& $contentObject->version( 1 );
+                            $version = $contentObject->version( 1 );
                             $version->setAttribute( 'modified', time() );
-                            $version->setAttribute( 'status', EZ_VERSION_STATUS_DRAFT );
+                            $version->setAttribute( 'status', eZContentObjectVersion::STATUS_DRAFT );
                             $version->store();
 
                             $contentObjectID = $contentObject->attribute( 'id' );
-                            $contentObjectAttributes =& $version->contentObjectAttributes();
+                            $contentObjectAttributes = $version->contentObjectAttributes();
                             
                             $contentObjectAttributes[0]->setAttribute( 'data_text', $firstName );
                             $contentObjectAttributes[0]->store();
@@ -245,17 +245,17 @@ class eZRightNowUser extends eZUser
                             $user->setAttribute( 'login', $login );
                             $user->setAttribute( 'email', $email['addr'] );
                             $user->setAttribute( 'password_hash', $userArray['password'] );
-                            $user->setAttribute( 'password_hash_type', EZ_USER_PASSWORD_HASH_PLAINTEXT );
+                            $user->setAttribute( 'password_hash_type', eZUser::PASSWORD_HASH_PLAINTEXT );
                             $user->store();
 
                             eZUser::updateLastVisit( $userID );
                             eZUser::setCurrentlyLoggedInUser( $user, $userID );
                             $GLOBALS['RIGHTNOW_NO_UPDATE'] = true;
-                            include_once( 'lib/ezutils/classes/ezoperationhandler.php' );
+                            #include_once( 'lib/ezutils/classes/ezoperationhandler.php' );
                             $operationResult = eZOperationHandler::execute( 'content', 'publish', array( 'object_id' => $contentObjectID,
                                                                                                'version' => 1 ) );
                             $GLOBALS['RIGHTNOW_NO_UPDATE'] = false;
-                            include_once("kernel/classes/ezcontentcachemanager.php");
+                            #include_once("kernel/classes/ezcontentcachemanager.php");
                             eZContentCacheManager::clearContentCache($userID);
                             eZRightNowUser::setStaticCacheCookie( $user );
                             
@@ -265,13 +265,13 @@ class eZRightNowUser extends eZUser
                         {
                             // Update user information
                             $userID = $existUser->attribute( 'contentobject_id' );
-                            $contentObject =& eZContentObject::fetch( $userID );
+                            $contentObject = eZContentObject::fetch( $userID );
 
                             $parentNodeID = $contentObject->attribute( 'main_parent_node_id' );
                             $currentVersion = $contentObject->attribute( 'current_version' );
 
-                            $version =& $contentObject->attribute( 'current' );
-                            $contentObjectAttributes =& $version->contentObjectAttributes();
+                            $version = $contentObject->attribute( 'current' );
+                            $contentObjectAttributes = $version->contentObjectAttributes();
 
                             $contentObjectAttributes[0]->setAttribute( 'data_text', $firstName );
                             $contentObjectAttributes[0]->store();
@@ -300,7 +300,7 @@ class eZRightNowUser extends eZUser
                             $existUser = eZUser::fetch(  $userID );
                             $existUser->setAttribute('email', $email['addr'] );
                             $existUser->setAttribute('password_hash', $userArray['password'] );
-                            $existUser->setAttribute('password_hash_type', EZ_USER_PASSWORD_HASH_PLAINTEXT );
+                            $existUser->setAttribute('password_hash_type', eZUser::PASSWORD_HASH_PLAINTEXT );
                             $existUser->store();
 
                             if ( $defaultUserPlacement != $parentNodeID )
@@ -309,7 +309,7 @@ class eZRightNowUser extends eZUser
                                 $newVersion->assignToNode( $defaultUserPlacement, 1 );
                                 $newVersion->removeAssignment( $parentNodeID );
                                 $newVersionNr = $newVersion->attribute( 'version' );
-                                include_once( 'lib/ezutils/classes/ezoperationhandler.php' );
+                                #include_once( 'lib/ezutils/classes/ezoperationhandler.php' );
                                 $GLOBALS['RIGHTNOW_NO_UPDATE'] = true;
                                 $operationResult = eZOperationHandler::execute( 'content', 'publish', array( 'object_id' => $userID,
                                                                                                              'version' => $newVersionNr ) );
@@ -333,7 +333,7 @@ class eZRightNowUser extends eZUser
         $user = false;
         return $user;
     }
-    function setStaticCacheCookie( $user )
+    static function setStaticCacheCookie( $user )
     {
         $ini = eZINI::instance();
         $cookielifetime = (int)$ini->variable('Session','SessionTimeout');
@@ -360,7 +360,7 @@ class eZRightNowUser extends eZUser
      * @param bool Only allow HTTP usage?
      * @return bool True or false whether the method has successfully run
      */
-    function createCookie($name, $value='', $maxage=0, $path='', $domain='', $secure=false, $HTTPOnly=false)
+    static function createCookie($name, $value='', $maxage=0, $path='', $domain='', $secure=false, $HTTPOnly=false)
     {
         $ob = ini_get('output_buffering');
 
